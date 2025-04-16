@@ -1,0 +1,8 @@
+﻿################################################################################
+# Bu .gitignore dosyası Microsoft(R) Visual Studio tarafından otomatik olarak oluşturulmuştur.
+################################################################################
+
+/.idea
+/out/build/x64-Debug
+/.vs
+/bin

@@ -7,3 +7,5 @@
 /.vs
 /bin/a.pdf
 /cmake-build-release
+bin/Lecture-Scheduler.exe
+bin/a.txt

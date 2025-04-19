@@ -1,4 +1,4 @@
-#    Lecture-Scheduler - A program made for showing info about lectures.
+#    Lecture-Scheduler - A program made for displaying lecture info.
 #    Copyright (C) 2025 Emirhan Kotan
 #    Original work: https://github.com/Authlantech/Lecture-Scheduler
 #

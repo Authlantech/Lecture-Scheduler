@@ -9,3 +9,7 @@
 /cmake-build-release
 bin/Lecture-Scheduler.exe
 bin/a.txt
+out
+CMakeSettings.json
+bin/Lecture-Scheduler.ilk
+bin/Lecture-Scheduler.pdb

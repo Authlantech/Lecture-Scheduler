@@ -37,6 +37,7 @@ enum weekdays
     thursday,
     friday
 };
+
 class LectureTime
 {
 protected :
@@ -71,6 +72,7 @@ public:
         this->_minute = other._minute;
     }
 };
+
 struct lecture
 {
     std::string code;
@@ -81,11 +83,9 @@ struct lecture
     std::string classroom;
 };
 
-typedef std::vector<struct lecture> section_pool; 
-typedef std::vector<std::vector<struct lecture>> course_pool;
-
 //Program functions
 std::vector<lecture> term_lectures;
+
 const std::vector<lecture> find_lectures(std::vector<std::string>lecture_data)
 {
     std::vector<lecture>desired_lectures;
@@ -165,7 +165,7 @@ const std::vector<lecture> find_lectures(std::vector<std::string>lecture_data)
 
 int main()
 {
-    char copyright_notice[500] =
+    const char copyright_notice[500] =
         "Lecture-Scheduler Copyright (C) 2025 Emirhan Kotan\n"
         "Original source code: https://github.com/Authlantech/Lecture-Scheduler\n"
         "This program comes with ABSOLUTELY NO WARRANTY.\n"

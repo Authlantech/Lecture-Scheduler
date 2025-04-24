@@ -19,14 +19,13 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
 #include <string>
 #include <sstream>
 #include <limits>
 #include <regex>
 #include <algorithm>
-#include <map>
 #include <utility>
-
 
 // Program user-defined datatypes 
 enum weekdays
@@ -70,6 +69,12 @@ public:
     {
         this->_hour = other._hour;
         this->_minute = other._minute;
+    }
+
+    static bool check_conflict(const LectureTime& b1, const LectureTime& e1, const LectureTime& b2, const LectureTime& e2)
+    {
+        if (b2 > e1 || e2 < b1) return false;
+        else return true;
     }
 };
 
@@ -164,8 +169,8 @@ const std::vector<lecture> find_lectures(std::vector<std::string>lecture_data)
 }
 
 int main()
-{
-    const char copyright_notice[500] =
+{ 
+    constexpr char copyright_notice[500] =
         "Lecture-Scheduler Copyright (C) 2025 Emirhan Kotan\n"
         "Original source code: https://github.com/Authlantech/Lecture-Scheduler\n"
         "This program comes with ABSOLUTELY NO WARRANTY.\n"
@@ -186,7 +191,6 @@ int main()
      *  > ll  <course code> ...  .                  (list all the lecture with given course code)
      *  > ll  <course code:section>... .            (list all the lectures with given course code and section)
      *  
-     *  > cp  <code:section(optional)>              (list all possible weekly programs which can be created with given lectures)
      */
 
     // Go into a loop and ask for user directives :
@@ -215,7 +219,7 @@ int main()
                 std::cout << "\n------\nALL LECTURES\n\n";
             }
 
-            // Display lectures with given parameters :
+           // Display lectures with given parameters :
            else
            {
                // Retrieve the parameters from user :
@@ -242,17 +246,7 @@ int main()
                }
                std::cout << "\n\n";
            }
-        }
-
-        else if (input == "exit")
-        {
-            return EXIT_SUCCESS;
-		}
-
-        else if (input == "cp")
-        {
-
-        }
+        }        
 
         else if (input == "rd")
         {
@@ -320,24 +314,28 @@ int main()
             file.close();
 
             std::cout << "\n\n> File succesfully read!\n\n" << std::flush;
-        }
+        }       
 
 		else if (input == "help")
 		{
 			std::cout << "\n\n> Available commands :\n"
-				<< "  > ll a                                        List all the lectures\n"			
+				<< "  > ll a                                               List all the lectures\n"			
 				<< "  > ll <course code:section(optional)> ...  <.>        List the lectures with given course code and (optionally) section\n"
-				<< "  > cp <course code:section(optional)> ...  <.>        Create all possible weekly programs with given lectures\n"
-				<< "  > exit                                        exit the app\n"
-				<< "  > rd <filename>                               read the lecture database from pdf file\n"
-				<< "  > clear                                       clear the console\n\n" << std::flush;
+				<< "  > exit                                               exit the app\n"
+				<< "  > rd <filename>                                      read the lecture database from pdf file\n"
+				<< "  > clear                                              clear the console\n\n" << std::flush;
 		}
 
         else if (input == "clear")
         {
             system("cls");
             std::cout << copyright_notice << "\n\n";
-        }                      
+        }      
+
+        else if (input == "exit")
+        {
+            return EXIT_SUCCESS;
+        }
 
         else
         {

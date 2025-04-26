@@ -1,4 +1,4 @@
-/*
+﻿/*
     Lecture-Scheduler - A program made for displaying lecture info.
     Copyright (C) 2025 Emirhan Kotan
     Original work: https://github.com/Authlantech/Lecture-Scheduler
@@ -27,45 +27,35 @@
 #include <algorithm>
 #include <utility>
 
-// Program user-defined datatypes 
-enum weekdays
-{
-    monday,
-    tuesday,
-    wednesday,
-    thursday,
-    friday
-};
-
 class LectureTime
 {
-protected :
+protected:
     unsigned int _hour;
     unsigned int _minute;
 public:
-    LectureTime(int hour,int minute) : _hour(hour), _minute(minute) {};
+    LectureTime(int hour, int minute) : _hour(hour), _minute(minute) {};
     LectureTime() {};
     ~LectureTime() {};
 
-    unsigned int hour() const {return _hour;};
-    unsigned int minute() const {return _minute;};
+    unsigned int hour() const { return _hour; };
+    unsigned int minute() const { return _minute; };
 
-    bool operator==(const LectureTime &other) const
+    bool operator==(const LectureTime& other) const
     {
         return this->_hour == other._hour && this->_minute == other._minute;
     }
 
-    bool operator>(const LectureTime &other) const
+    bool operator>(const LectureTime& other) const
     {
         return this->_hour > other._hour || (this->_hour == other._hour && this->_minute > other._minute);
     }
 
-    bool operator<(const LectureTime &other) const
+    bool operator<(const LectureTime& other) const
     {
         return this->_hour < other._hour || (this->_hour == other._hour && this->_minute < other._minute);
     }
 
-    void operator=(const LectureTime &other)
+    void operator=(const LectureTime& other)
     {
         this->_hour = other._hour;
         this->_minute = other._minute;
@@ -80,51 +70,49 @@ public:
 
 struct lecture
 {
-    std::string code;
-    int section;
-    std::string weekday;
-    LectureTime begining;
-    LectureTime ending;
-    std::string classroom;
+    std::string     code;
+    int             section;
+    std::string     weekday;
+    LectureTime     begining;
+    LectureTime     ending;
+    std::string     classroom;
 };
-
-//Program functions
 std::vector<lecture> term_lectures;
 
 const std::vector<lecture> find_lectures(std::vector<std::string>lecture_data)
 {
     std::vector<lecture>desired_lectures;
-    for(std::string& param : lecture_data)
+    for (std::string& param : lecture_data)
     {
         std::vector<lecture> lecture_group;
         std::size_t pos = param.find(":");
         //Parameter consists course code and section :
-        if(pos != std::string::npos)
+        if (pos != std::string::npos)
         {
             try
             {
                 // Retrieve the course code of lecture :
-                std::string lecture_code = param.substr(0,pos);
+                std::string lecture_code = param.substr(0, pos);
                 // Retrieve the section of the lecture :
                 int section = std::stoi(param.substr(pos + 1));
 
                 // Search the lectures with given course code and section :
-                for(lecture l : term_lectures)
+                for (lecture l : term_lectures)
                 {
-                    if(l.code == lecture_code && l.section == section)
+                    if (l.code == lecture_code && l.section == section)
                     {
                         lecture_group.push_back(l);
                     }
                 }
             }
 
-            catch(std::invalid_argument const& ex)
+            catch (std::invalid_argument const& ex)
             {
                 std::cerr << std::endl << param << " : ";
-                std::cerr<< ex.what() << std::endl;
+                std::cerr << ex.what() << std::endl;
             }
 
-            catch(std::out_of_range const& ex)
+            catch (std::out_of_range const& ex)
             {
                 std::cerr << std::endl << param << " : ";
                 std::cerr << ex.what() << std::endl;
@@ -137,19 +125,19 @@ const std::vector<lecture> find_lectures(std::vector<std::string>lecture_data)
             try
             {
                 // Retrieve the course code of lecture :
-                std::string lecture_code = param.substr(0,pos);
+                std::string lecture_code = param.substr(0, pos);
 
                 // Search the lectures with given course code and section :
-                for(lecture l : term_lectures)
+                for (lecture l : term_lectures)
                 {
-                    if(l.code == lecture_code)
+                    if (l.code == lecture_code)
                     {
                         lecture_group.push_back(l);
                     }
                 }
             }
 
-            catch(std::out_of_range const& ex)
+            catch (std::out_of_range const& ex)
             {
                 std::cerr << std::endl << param << " : ";
                 std::cerr << ex.what() << std::endl;
@@ -157,16 +145,125 @@ const std::vector<lecture> find_lectures(std::vector<std::string>lecture_data)
 
         }
 
-        if(lecture_group.size() > 0)
+        if (lecture_group.size() > 0)
         {
-            std::sort(lecture_group.begin(), lecture_group.end(),[](const lecture& l1,const lecture& l2) {return l1.section < l2.section;});
-            for(auto l : lecture_group) desired_lectures.push_back(l);
+            std::sort(lecture_group.begin(), lecture_group.end(), [](const lecture& l1, const lecture& l2) {return l1.section < l2.section; });
+            for (auto l : lecture_group) desired_lectures.push_back(l);
         }
 
     }
 
     return desired_lectures;
 }
+
+class Combinator
+{
+    struct section_pool
+    {
+        int section_number = 0;
+        std::vector<struct lecture> lectures;
+    };
+
+    struct course_pool
+    {
+        std::string course_code = ""; 
+        std::vector<struct section_pool> sections;
+    };
+
+    std::vector<struct course_pool> program_courses;
+
+public : 
+
+    std::vector<std::string> operator() (std::vector<std::string>&& codes)
+    {                  
+
+        // Group lectures acording to their code and sections : 
+
+        for (const auto& code : codes)
+        {       
+            std::size_t seperator = code.find(":");
+            
+            // Check if current course code has been previously added to program_courses            
+            if (std::find_if(program_courses.begin(), program_courses.end(),
+                [code,seperator](const struct course_pool& c) -> bool 
+                {                    
+                    if (seperator == std::string::npos)
+                    {
+                        return code == c.course_code;
+                    }
+                    else
+                    {
+                        return code.substr(0, seperator) == c.course_code;
+                    }
+                }
+            ) == program_courses.end())
+            {
+
+                //Retrieve the lectures with given code : 
+                std::vector<struct lecture> course_lectures = find_lectures({ code });
+                
+                if (course_lectures.size() == 0) continue; // Code is not valid !
+                else
+                {
+                    // Sort the lectures by their sections :
+                    std::sort(course_lectures.begin(), course_lectures.end(), 
+                        [](const struct lecture& l1, const struct lecture& l2) -> bool
+                        {
+                            return l1.section <= l2.section;
+                        }
+                    ); 
+                    int section_count = course_lectures.rbegin()->section;
+                    
+                    // Create a course pool to store all course data : 
+                    course_pool course = { course_lectures.begin()->code };
+
+                    // Store the lectures with same section into a section pool
+                    section_pool tempPool;
+                    int previous = 0;
+
+                    for (const auto& l : course_lectures)
+                    {
+                        if (l.section == previous)
+                        {
+                            tempPool.lectures.push_back(l);                            
+                        }
+                        else
+                        {
+                            course.sections.push_back(tempPool);
+                            tempPool = {};
+                            tempPool.section_number = l.section; 
+                            tempPool.lectures.push_back(l);
+                            previous = l.section;
+                        }                        
+                    }
+
+                    if (tempPool.lectures.size() > 0) course.sections.push_back(tempPool);
+
+                    program_courses.push_back(course);
+                }
+                
+            }           
+        }
+        
+        for (const auto& c : program_courses)
+        {
+            std::cout << c.course_code << "\n";
+            for (const auto& s : c.sections)
+            {
+                std::cout << "\t" << s.section_number << " : \n";
+                for (const auto& l : s.lectures)
+                {
+                    std::cout << "\t\t" << l.code << " " << l.section << " " << l.classroom << " " << l.weekday
+                        << " " << l.begining.hour() << ":" << l.begining.minute() << " - " << l.ending.hour()
+                        << ":" << l.ending.minute() << std::endl;
+                }
+            }
+        }  
+        
+
+        return {};
+    }   
+}combinator;
 
 int main()
 { 
@@ -209,9 +306,9 @@ int main()
             //Display all lectures :
             if(input == "a")
             {
-                std::cout << "\n\nALL LECTURES\n------" << std::endl;
+                std::cout << "\n\nALL LECTURES\n------" << std::endl;              
                 for(auto& lecture : term_lectures)
-                {
+                {                               
                     std::cout << lecture.code << " " << lecture.section << " " << lecture.classroom << " " << lecture.weekday
                             << " " << lecture.begining.hour() << ":" << lecture.begining.minute() << " - " << lecture.ending.hour()
                             <<":" << lecture.ending.minute() << std::endl;
@@ -237,9 +334,9 @@ int main()
 
                //Display the lecture info :
 
-               std::cout << "\n\n";
+               std::cout << "\n";          
                for(auto& lecture : lectures)
-               {
+               {             
                    std::cout << lecture.code << " " << lecture.section << " " << lecture.classroom << " " << lecture.weekday
                    << " " << lecture.begining.hour() << ":" << lecture.begining.minute() << " - " << lecture.ending.hour()
                    <<":" << lecture.ending.minute() << std::endl;
@@ -247,6 +344,18 @@ int main()
                std::cout << "\n\n";
            }
         }        
+
+        else if (input == "cp")
+        {
+            std::vector<std::string> codes;
+            do
+            {
+                std::cin >> input;
+                codes.push_back(input);
+            } while (input != ".");      
+
+            combinator(std::move(codes));
+        }
 
         else if (input == "rd")
         {
@@ -313,7 +422,7 @@ int main()
             } while (!file.eof());
             file.close();
 
-            std::cout << "\n\n> File succesfully read!\n\n" << std::flush;
+            std::cout << "\n\n> File succesfully read!\n\n" << std::flush;            
         }       
 
 		else if (input == "help")
@@ -344,5 +453,5 @@ int main()
 
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
 
-    }while(!exit);
+    }while(true);
 }

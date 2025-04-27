@@ -175,7 +175,8 @@ class Combinator
 public : 
 
     std::vector<std::string> operator() (std::vector<std::string>&& codes)
-    {                  
+    {     
+        program_courses.clear();
 
         // Group lectures acording to their code and sections : 
 
@@ -211,15 +212,15 @@ public :
                         {
                             return l1.section <= l2.section;
                         }
-                    ); 
-                    int section_count = course_lectures.rbegin()->section;
+                    );                    
                     
-                    // Create a course pool to store all course data : 
+                    // Create a course pool to store all section pools : 
                     course_pool course = { course_lectures.begin()->code };
 
-                    // Store the lectures with same section into a section pool
+                    // Store the lectures with same section into section pools
                     section_pool tempPool;
-                    int previous = 0;
+                    tempPool.section_number = 1;
+                    int previous = 1;
 
                     for (const auto& l : course_lectures)
                     {
@@ -229,7 +230,7 @@ public :
                         }
                         else
                         {
-                            course.sections.push_back(tempPool);
+                            if(tempPool.lectures.size() > 0 ) course.sections.push_back(tempPool);
                             tempPool = {};
                             tempPool.section_number = l.section; 
                             tempPool.lectures.push_back(l);
@@ -245,24 +246,40 @@ public :
             }           
         }
         
-        for (const auto& c : program_courses)
-        {
-            std::cout << c.course_code << "\n";
-            for (const auto& s : c.sections)
-            {
-                std::cout << "\t" << s.section_number << " : \n";
-                for (const auto& l : s.lectures)
-                {
-                    std::cout << "\t\t" << l.code << " " << l.section << " " << l.classroom << " " << l.weekday
-                        << " " << l.begining.hour() << ":" << l.begining.minute() << " - " << l.ending.hour()
-                        << ":" << l.ending.minute() << std::endl;
-                }
-            }
-        }  
-        
+        // Calculate the count of all possibilities : 
 
+        int possibility_count = 1; 
+        for (const auto& c : program_courses)
+        {            
+            possibility_count *= c.sections.size();
+        }
+        
+        // A index counter which goes over all possible section combinations : 
+       
+        int* section_indexes = new int[program_courses.size()];        
+
+        for (int possibility_counter = 0; possibility_counter < possibility_count; possibility_counter++)
+        {    
+            int current_possibility = possibility_counter;
+            for (int a = program_courses.size() - 1; a >= 0; a--)
+            {               
+                section_indexes[a] = (current_possibility % program_courses[a].sections.size()) + program_courses[a].sections[0].section_number;
+                current_possibility /= program_courses[a].sections.size();
+            }
+           
+            for (int a = 0;a < program_courses.size();a++)
+            {
+                std::cout << section_indexes[a] << " ";
+            }
+                 
+            std::cout << std::endl;
+        }
+
+        delete[] section_indexes;
+       
         return {};
     }   
+
 }combinator;
 
 int main()
@@ -281,7 +298,7 @@ int main()
      *  COMMANDS :
      *
 	 *  > exit                                      (exit the program)
-     *  > rd <filename>                             (read the lecture database from pdf file)    
+     *  > file <filename>                           (read the lecture database from pdf file)    
      * 
      * 
      *  > ll a                                      (list all the lectures on a week)
@@ -334,10 +351,26 @@ int main()
 
                //Display the lecture info :
 
-               std::cout << "\n";          
+               std::cout << "\n";   
+               std::string prev_course = ""; 
+               int prev_section = 0;
                for(auto& lecture : lectures)
                {             
-                   std::cout << lecture.code << " " << lecture.section << " " << lecture.classroom << " " << lecture.weekday
+                   if (prev_course != lecture.code)
+                   {
+                       prev_course = lecture.code; 
+                       prev_section = lecture.section; 
+
+                       std::cout << "\n" << lecture.code << std::endl;
+                       std::cout << "\n\t[" << lecture.section << "]" << std::endl;
+                   }
+                   else if (prev_section != lecture.section)
+                   {
+                       prev_section = lecture.section; 
+                       std::cout << "\n\t[" << lecture.section << "]" << std::endl;
+                   }
+
+                   std::cout << "\t" << lecture.code << " " << lecture.section << " " << lecture.classroom << " " << lecture.weekday
                    << " " << lecture.begining.hour() << ":" << lecture.begining.minute() << " - " << lecture.ending.hour()
                    <<":" << lecture.ending.minute() << std::endl;
                }
@@ -357,7 +390,7 @@ int main()
             combinator(std::move(codes));
         }
 
-        else if (input == "rd")
+        else if (input == "file")
         {
             // Extract the lecture database from pdf file :
 
@@ -368,7 +401,7 @@ int main()
             {
                 std::cin >> file_name;
                 file.open(file_name);
-                if (file.is_open() == false) std::cout << "\n\n> File could not be opened!\n\n> Re-enter file name: " << std::flush;
+                if (file.is_open() == false) std::cout << "\n[ERROR] : File could not be opened!\n[ERROR] : Re-enter file name: " << std::flush;
             } while (file.is_open() == false);
 
             std::string command("pdftotext -raw " + file_name);
@@ -422,23 +455,23 @@ int main()
             } while (!file.eof());
             file.close();
 
-            std::cout << "\n\n> File succesfully read!\n\n" << std::flush;            
+            std::cout << "\n[SUCCES] : File succesfully read!\n" << std::flush;            
         }       
 
 		else if (input == "help")
 		{
-			std::cout << "\n\n> Available commands :\n"
+			std::cout << "\nAVAILABLE COMMANDS :\n\n"
 				<< "  > ll a                                               List all the lectures\n"			
 				<< "  > ll <course code:section(optional)> ...  <.>        List the lectures with given course code and (optionally) section\n"
 				<< "  > exit                                               exit the app\n"
-				<< "  > rd <filename>                                      read the lecture database from pdf file\n"
-				<< "  > clear                                              clear the console\n\n" << std::flush;
+				<< "  > file <filename>                                    read the lecture database from pdf file\n"
+				<< "  > clear                                              clear the console\n" << std::flush;
 		}
 
         else if (input == "clear")
         {
             system("cls");
-            std::cout << copyright_notice << "\n\n";
+            std::cout << copyright_notice << "\n";
         }      
 
         else if (input == "exit")
@@ -448,7 +481,7 @@ int main()
 
         else
         {
-            std::cout << "\n\n> Invalid command!\n\n" << std::flush;
+            std::cout << "\n[ERROR] : Invalid command!\n" << std::flush;
         }
 
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
